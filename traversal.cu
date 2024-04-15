@@ -83,6 +83,10 @@ __global__ void bfs_kernel(graph_t *graph, int *level, int *new_vertex_visited,
     if (level[vertex] == *curr_level - 1) {
       printf("Iterating over all edges associated with vertex id = %d\n",
              vertex);
+
+      printf("Vertex begins at edge id = %d\n", graph->srcPtrs[vertex]);
+      printf("Vertex ends at edge id = %d\n", graph->srcPtrs[vertex + 1]);
+
       for (int edge = graph->srcPtrs[vertex]; edge < graph->srcPtrs[vertex + 1];
            ++edge) {
         printf("edge id = %d\n", edge);
