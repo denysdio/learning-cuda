@@ -79,11 +79,10 @@ __global__ void bfs_kernel(graph_t *graph, int *level, int *new_vertex_visited,
   int vertex = blockDim.x * blockIdx.x + threadIdx.x;
 
   if (vertex < graph->numVertices) {
-    printf("Thread on vertex id = %d\n", vertex);
-    printf("Level of vertex id = %d\n", level[vertex]);
-    printf("Current level id = %d\n", *curr_level);
 
     if (level[vertex] == *curr_level - 1) {
+      printf("Iterating over all edges associated with vertex id = %d\n",
+             vertex);
       for (int edge = graph->srcPtrs[vertex]; edge < graph->srcPtrs[vertex + 1];
            ++edge) {
         printf("edge id = %d\n", edge);
