@@ -130,7 +130,7 @@ int main(void) {
   cudaMemcpy(new_visited_dev, new_visited, sizeof(int), cudaMemcpyHostToDevice);
 
   bfs_kernel<<<N_VERTICES / THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(
-      g_dev, level_dev, new_visited, curr_level);
+      g_dev, level_dev, new_visited_dev, curr_level_dev);
 
   free(g);
   free(level);
