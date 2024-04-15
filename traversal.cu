@@ -83,12 +83,42 @@ __global__ void bfs_kernel(graph_t *graph, int *level, int *new_vertex_visited,
     if (level[vertex] == *curr_level - 1) {
       printf("Iterating over all edges associated with vertex id = %d\n",
              vertex);
+      graph->srcPtrs = (int *)malloc((N_VERTICES + 1) * sizeof(int));
+      graph->dst = (int *)malloc(N_EDGES * sizeof(int));
+
+      graph->srcPtrs[0] = 0;
+      graph->srcPtrs[1] = 2;
+      graph->srcPtrs[2] = 4;
+      graph->srcPtrs[3] = 7;
+      graph->srcPtrs[4] = 9;
+      graph->srcPtrs[5] = 11;
+      graph->srcPtrs[6] = 12;
+      graph->srcPtrs[7] = 13;
+      graph->srcPtrs[8] = 15;
+      graph->srcPtrs[9] = 15;
+
+      graph->dst[0] = 1;
+      graph->dst[1] = 2;
+      graph->dst[2] = 3;
+      graph->dst[3] = 4;
+      graph->dst[4] = 5;
+      graph->dst[5] = 6;
+      graph->dst[6] = 7;
+      graph->dst[7] = 4;
+      graph->dst[8] = 8;
+      graph->dst[9] = 5;
+      graph->dst[10] = 8;
+      graph->dst[11] = 6;
+      graph->dst[12] = 8;
+      graph->dst[13] = 0;
+      graph->dst[14] = 6;
 
       // printf("Src Ptrs size = %d\n", );
-      // printf("Vertex begins at edge id = %d\n", graph->srcPtrs[vertex]);
-      // printf("Vertex ends at edge id = %d\n", graph->srcPtrs[vertex + 1]);
+      printf("Vertex begins at edge id = %d\n", graph->srcPtrs[vertex]);
+      printf("Vertex ends at edge id = %d\n", graph->srcPtrs[vertex + 1]);
 
-      for (int edge = 0; edge < 2; ++edge) {
+      for (int edge = graph->srcPtrs[vertex]; edge < graph->srcPtrs[vertex + 1];
+           ++edge) {
         printf("edge id = %d\n", edge);
         int neighbor = graph->dst[edge];
         printf("neighbor id = %d\n", neighbor);
