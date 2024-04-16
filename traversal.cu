@@ -5,9 +5,9 @@
 #define THREADS_PER_BLOCK 1
 
 struct CSRGraph {
-  int numVertices;
-  int srcPtrs[N_VERTICES + 1];
-  int dst[N_EDGES];
+  unsigned int numVertices;
+  unsigned int srcPtrs[N_VERTICES + 1];
+  unsigned int dst[N_EDGES];
 };
 
 typedef struct CSRGraph graph_t;
@@ -47,53 +47,46 @@ graph_t *init_graph() {
 }
 
 void print_graph(graph_t *g) {
-  printf("graph n_vertices = %d\n", g->numVertices);
+  printf("graph n_vertices = %u\n", g->numVertices);
   printf("src pointers: ");
 
-  for (int i = 0; i < g->numVertices + 1; ++i) {
-    printf("%d ", g->srcPtrs[i]);
+  for (unsigned int i = 0; i < g->numVertices + 1; ++i) {
+    printf("%u ", g->srcPtrs[i]);
   }
 
   printf("\n");
   printf("dst: ");
 
-  for (int i = 0; i < N_EDGES; ++i) {
-    printf("%d ", g->dst[i]);
+  for (unsigned int i = 0; i < N_EDGES; ++i) {
+    printf("%u ", g->dst[i]);
   }
 
   printf("\n");
 }
 
-__global__ void foo(graph_t *g, int n) {
-  int index = blockIdx.x * blockDim.x + threadIdx.x;
-
-  if (index < n) {
-    printf("graph n_vertices = %d\n", g->numVertices);
-  }
-}
-
-__global__ void bfs_kernel(graph_t *graph, int *level, int *new_vertex_visited,
-                           int *curr_level) {
-  int vertex = blockDim.x * blockIdx.x + threadIdx.x;
+__global__ void bfs_kernel(graph_t *graph, unsigned int *level,
+                           unsigned int *new_vertex_visited,
+                           unsigned int *curr_level) {
+  unsigned int vertex = blockDim.x * blockIdx.x + threadIdx.x;
 
   if (vertex < graph->numVertices) {
 
     if (level[vertex] == *curr_level - 1) {
-      printf("Iterating over all edges associated with vertex id = %d\n",
+      printf("Iterating over all edges associated with vertex id = %u\n",
              vertex);
 
       // printf("Src Ptrs size = %d\n", );
-      printf("Vertex begins at edge id = %d\n", graph->srcPtrs[vertex]);
-      printf("Vertex ends at edge id = %d\n", graph->srcPtrs[vertex + 1]);
+      printf("Vertex begins at edge id = %u\n", graph->srcPtrs[vertex]);
+      printf("Vertex ends at edge id = %u\n", graph->srcPtrs[vertex + 1]);
 
-      for (int edge = graph->srcPtrs[vertex]; edge < graph->srcPtrs[vertex + 1];
-           ++edge) {
-        printf("edge id = %d\n", edge);
-        int neighbor = graph->dst[edge];
-        printf("neighbor id = %d\n", neighbor);
-        if (level[neighbor] == INT_MAX) { // neighbor not visited
+      for (unsigned int edge = graph->srcPtrs[vertex];
+           edge < graph->srcPtrs[vertex + 1]; ++edge) {
+        printf("edge id = %u\n", edge);
+        unsigned int neighbor = graph->dst[edge];
+        printf("neighbor id = %u\n", neighbor);
+        if (level[neighbor] == UINT_MAX) { // neighbor not visited
 
-          printf("new neighbor id added to level %d = %d\n", *curr_level,
+          printf("new neighbor id added to level %u = %u\n", *curr_level,
                  neighbor);
           level[neighbor] = *curr_level;
           *new_vertex_visited = 1;
@@ -105,15 +98,15 @@ __global__ void bfs_kernel(graph_t *graph, int *level, int *new_vertex_visited,
 
 int main(void) {
   graph_t *g = init_graph();
-  int *level, *new_visited, *curr_level;
+  unsigned int *level, *new_visited, *curr_level;
 
   graph_t *g_dev;
-  int *level_dev, *new_visited_dev, *curr_level_dev;
+  unsigned int *level_dev, *new_visited_dev, *curr_level_dev;
 
   // Init BFS variables
-  level = (int *)malloc(N_VERTICES * sizeof(int));
-  curr_level = (int *)malloc(sizeof(int));
-  new_visited = (int *)malloc(sizeof(int));
+  level = (unsigned int *)malloc(N_VERTICES * sizeof(unsigned int));
+  curr_level = (unsigned int *)malloc(sizeof(unsigned int));
+  new_visited = (unsigned int *)malloc(sizeof(unsigned int));
 
   level[0] = 0;
   for (int i = 1; i < N_VERTICES; ++i) {
@@ -123,15 +116,17 @@ int main(void) {
   *new_visited = 0;
 
   cudaMalloc((void **)&g_dev, sizeof(graph_t));
-  cudaMalloc((void **)&level_dev, N_VERTICES * sizeof(int));
-  cudaMalloc((void **)&curr_level_dev, sizeof(int));
-  cudaMalloc((void **)&new_visited_dev, sizeof(int));
+  cudaMalloc((void **)&level_dev, N_VERTICES * sizeof(unsigned int));
+  cudaMalloc((void **)&curr_level_dev, sizeof(unsigned int));
+  cudaMalloc((void **)&new_visited_dev, sizeof(unsigned int));
 
   cudaMemcpy(g_dev, g, sizeof(graph_t), cudaMemcpyHostToDevice);
-  cudaMemcpy(level_dev, level, N_VERTICES * sizeof(int),
+  cudaMemcpy(level_dev, level, N_VERTICES * sizeof(unsigned int),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(curr_level_dev, curr_level, sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(new_visited_dev, new_visited, sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(curr_level_dev, curr_level, sizeof(unsigned int),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(new_visited_dev, new_visited, sizeof(unsigned int),
+             cudaMemcpyHostToDevice);
 
   bfs_kernel<<<N_VERTICES / THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(
       g_dev, level_dev, new_visited_dev, curr_level_dev);
