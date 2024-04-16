@@ -131,17 +131,21 @@ int main(void) {
   bfs_kernel<<<N_VERTICES / THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(
       g_dev, level_dev, new_visited_dev, curr_level_dev);
 
-  /*
   cudaMemcpy(level, level_dev, N_VERTICES * sizeof(unsigned int),
              cudaMemcpyDeviceToHost);
   cudaMemcpy(curr_level, curr_level_dev, sizeof(unsigned int),
              cudaMemcpyDeviceToHost);
   cudaMemcpy(new_visited, new_visited_dev, sizeof(unsigned int),
              cudaMemcpyDeviceToHost);
-  */
 
   *curr_level += 1;
 
+  cudaMemcpy(curr_level_dev, curr_level, sizeof(unsigned int),
+             cudaMemcpyHostToDevice);
+
+  cudaMemcpy(g_dev, g, sizeof(graph_t), cudaMemcpyHostToDevice);
+  cudaMemcpy(level_dev, level, N_VERTICES * sizeof(unsigned int),
+             cudaMemcpyHostToDevice);
   cudaMemcpy(curr_level_dev, curr_level, sizeof(unsigned int),
              cudaMemcpyHostToDevice);
 
